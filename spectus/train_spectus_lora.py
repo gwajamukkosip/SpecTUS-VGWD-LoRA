@@ -241,6 +241,7 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     preprocess_args = config.get("preprocess_args", {})
     model_args = config["model_args"]
     example_gen_args = config["example_generation_args"]
+    lora_args = config.get("lora_args", {})
     tokenizer_path = model_args["tokenizer_path"]
     report_to = hf_training_args.pop("report_to", "none")
     use_wandb = report_to == "wandb"
@@ -312,12 +313,21 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     print("Applying LoRA...")
 
     lora_config = LoraConfig(
-        r=8,
-        lora_alpha=16,
-        lora_dropout=0.05,
-        target_modules=["q_proj", "v_proj"],
-        bias="none"
+        r=lora_args.get("r", 8),
+        lora_alpha=lora_args.get("lora_alpha", 16),
+        lora_dropout=lora_args.get("lora_dropout", 0.05),
+        target_modules=lora_args.get("target_modules", ["q_proj", "v_proj"]),
+        bias=lora_args.get("bias", "none"),
+        use_rslora=lora_args.get("use_rslora", False),
+        use_dora=lora_args.get("use_dora", False),
     )
+
+    print("LoRA settings:")
+    print("  r:", lora_args.get("r", 8))
+    print("  alpha:", lora_args.get("lora_alpha", 16))
+    print("  dropout:", lora_args.get("lora_dropout", 0.05))
+    print("  use_rslora:", lora_args.get("use_rslora", False))
+    print("  use_dora:", lora_args.get("use_dora", False))
 
     model = get_peft_model(
         model,

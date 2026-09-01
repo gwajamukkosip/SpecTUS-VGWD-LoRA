@@ -1,0 +1,103 @@
+{
+  "artifact_name": "vgwd_clean_rslora_r32_all_attention_seed123_frozen",
+  "frozen_on": "2026-09-01",
+  "status": "validation-selected research candidate; not externally validated",
+  "selected_seed": 123,
+  "selection_basis": "highest strict Top-1 on the fixed 664-row validation set among the three prespecified all-attention seed runs; no test result was used",
+  "base_model": "checkpoints/SpecTUS_pretrained",
+  "base_model_pytorch_model_sha256": "4f8d487a51ab787dd2353253c16a71170c1843c612684ec884a0c9a5c20c13c4",
+  "tokenizer": "tokenizer/tokenizer_mf10M.model",
+  "tokenizer_sha256": "642ed971b10dec9b170fb4c1129a2563afbfba67214437db6b36810aadd27a47",
+  "adapter": {
+    "peft": "rsLoRA",
+    "rank": 32,
+    "alpha": 64,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "out_proj"
+    ],
+    "checkpoint": 3500,
+    "trainable_parameters": 9437184
+  },
+  "inference": {
+    "deterministic": true,
+    "num_beams": 10,
+    "num_return_sequences": 10,
+    "max_length": 200
+  },
+  "validation": {
+    "rows": 664,
+    "selected_seed_strict_top1_correct": 277,
+    "selected_seed_strict_top1_percent": 41.71686746987952,
+    "selected_seed_strict_top10_correct": 581,
+    "selected_seed_strict_top10_percent": 87.5,
+    "all_seed_metrics": [
+      {
+        "condition": "all_attention",
+        "seed": 7,
+        "n": 664,
+        "strict_top1_correct": 261,
+        "strict_top1_percent": 39.30722891566265,
+        "strict_top10_correct": 581,
+        "strict_top10_percent": 87.5,
+        "predictions": "predictions/vgwd_clean_rslora_r32_allattn_seed7_valid_beam10/2026-08-30-18_23_42_vgwd_clean_rslora_r32_allattn_seed7/VGWD/1788096658_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+      },
+      {
+        "condition": "all_attention",
+        "seed": 123,
+        "n": 664,
+        "strict_top1_correct": 277,
+        "strict_top1_percent": 41.71686746987952,
+        "strict_top10_correct": 581,
+        "strict_top10_percent": 87.5,
+        "predictions": "predictions/vgwd_clean_rslora_r32_allattn_seed123_valid_beam10/2026-08-30-19_26_05_vgwd_clean_rslora_r32_allattn_seed123/VGWD/1788097840_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+      },
+      {
+        "condition": "all_attention",
+        "seed": 2026,
+        "n": 664,
+        "strict_top1_correct": 250,
+        "strict_top1_percent": 37.65060240963855,
+        "strict_top10_correct": 582,
+        "strict_top10_percent": 87.65060240963855,
+        "predictions": "predictions/vgwd_clean_rslora_r32_allattn_seed2026_valid_beam10/2026-08-30-21_18_54_vgwd_clean_rslora_r32_allattn_seed2026/VGWD/1788099065_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+      }
+    ]
+  },
+  "test_used_for_selection_or_freeze": false,
+  "source_checkpoint_hashes": {
+    "7": "fde88a8cabfef202e97ba463d873fbc40f94ca338905c9fedbc00c53d98ac86e",
+    "123": "9471d17dda3ead052360ca0574d7f4f4989864b4ff4a237b7fb1488ed6b17513",
+    "2026": "3dcb1eca8b1146a3fcb5c4c2d3cfeb4a7bc55a5426ee924476e7a8cc129b53e7"
+  },
+  "artifact_files": {
+    "adapter_model.bin": {
+      "bytes": 37854861,
+      "sha256": "9471d17dda3ead052360ca0574d7f4f4989864b4ff4a237b7fb1488ed6b17513"
+    },
+    "adapter_config.json": {
+      "bytes": 756,
+      "sha256": "6624b46f5577674e6005dc56fcac7275018ecc144f7bdf7c8e7298ab407bc9f0"
+    },
+    "tokenizer.json": {
+      "bytes": 7075,
+      "sha256": "642ed971b10dec9b170fb4c1129a2563afbfba67214437db6b36810aadd27a47"
+    },
+    "tokenizer_config.json": {
+      "bytes": 273,
+      "sha256": "51d77bd2c5a27fff5d3ecd2c2bfd5d4b4efeed1b44db1f1b393c24ac6cdef475"
+    },
+    "special_tokens_map.json": {
+      "bytes": 99,
+      "sha256": "1ecac9ec78cf97057d231453f726132712ed3360b71d39869b23f7c205cf67b4"
+    }
+  },
+  "source_files": {
+    "training_config": "configs/finetune_vgwd_clean_rslora_r32_allattn_seed123.yaml",
+    "prediction_config": "configs/predict_vgwd_clean_rslora_r32_valid_beam10.yaml",
+    "validation_summary": "analysis/rslora_r32_all_attention_validation/summary.json"
+  }
+}

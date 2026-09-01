@@ -200,6 +200,7 @@ def get_spectro_config(model_args: Dict, tokenizer: transformers.PreTrainedToken
 def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the config file"),
          checkpoint: Path = typer.Option(None, help="Path to the checkpoint directory"),
          resume_id: str = typer.Option(None, help="Wandb id of the run to resume, if not None, resume will be attempted"),
+         resume_checkpoint: Path = typer.Option(None, help="Local Trainer checkpoint to resume; keeps --checkpoint as the pretrained base model"),
          checkpoints_dir: Path = typer.Option("checkpoints", help="Path to the checkpoints directory"),
          additional_info: str = typer.Option(None, help="use format '_info'; additional info to add to run_name"),
          additional_tags: str = typer.Option(None, help="Tags to add to the wandb run, one string, delimited by ':'"),
@@ -416,7 +417,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
     print(f"Run name: {run_name}")
 
     # Resume training
-    if resume_id:
+    if resume_checkpoint:
+        save_path = resume_checkpoint.parent
+    elif resume_id:
         if not checkpoint:
             raise ValueError("Checkpoint must be provided when resuming training")
         save_path = checkpoint.parent
@@ -458,7 +461,9 @@ def main(config_file: Path = typer.Option(..., dir_okay=False, help="Path to the
                 )
 
 
-    if checkpoint and resume_id:
+    if resume_checkpoint:
+        trainer.train(resume_from_checkpoint=str(resume_checkpoint))
+    elif checkpoint and resume_id:
         trainer.train(resume_from_checkpoint=str(checkpoint))
     else:
         trainer.train()

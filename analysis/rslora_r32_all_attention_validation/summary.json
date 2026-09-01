@@ -1,0 +1,101 @@
+{
+  "design": "r32 alpha64 q/v versus q/k/v/out attention projections",
+  "data": "VGWD clean validation only",
+  "validation_rows": 664,
+  "seeds": [
+    7,
+    123,
+    2026
+  ],
+  "checkpoint": 3500,
+  "beam": 10,
+  "primary_endpoint": "strict_top1",
+  "selection_rule": "mean Top-1 gain > 0 and positive Top-1 gain in at least 2/3 seeds",
+  "select_all_attention_for_locked_holdout": true,
+  "run_metrics": [
+    {
+      "condition": "qv",
+      "seed": 7,
+      "n": 664,
+      "strict_top1_correct": 227,
+      "strict_top1_percent": 34.18674698795181,
+      "strict_top10_correct": 551,
+      "strict_top10_percent": 82.98192771084338,
+      "predictions": "predictions/vgwd_clean_rslora_r32_seed7_valid_beam10/2026-08-29-21_05_07_vgwd_clean_rslora_r32_seed7/VGWD/1788096113_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+    },
+    {
+      "condition": "qv",
+      "seed": 123,
+      "n": 664,
+      "strict_top1_correct": 213,
+      "strict_top1_percent": 32.07831325301205,
+      "strict_top10_correct": 547,
+      "strict_top10_percent": 82.37951807228916,
+      "predictions": "predictions/vgwd_clean_rslora_r32_seed123_valid_beam10/2026-08-27-15_18_35_vgwd_clean_rslora_r32_seed123/VGWD/1788097283_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+    },
+    {
+      "condition": "qv",
+      "seed": 2026,
+      "n": 664,
+      "strict_top1_correct": 211,
+      "strict_top1_percent": 31.77710843373494,
+      "strict_top10_correct": 538,
+      "strict_top10_percent": 81.02409638554217,
+      "predictions": "predictions/vgwd_clean_rslora_r32_seed2026_valid_beam10/2026-08-27-16_08_38_vgwd_clean_rslora_r32_seed2026/VGWD/1788098493_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+    },
+    {
+      "condition": "all_attention",
+      "seed": 7,
+      "n": 664,
+      "strict_top1_correct": 261,
+      "strict_top1_percent": 39.30722891566265,
+      "strict_top10_correct": 581,
+      "strict_top10_percent": 87.5,
+      "predictions": "predictions/vgwd_clean_rslora_r32_allattn_seed7_valid_beam10/2026-08-30-18_23_42_vgwd_clean_rslora_r32_allattn_seed7/VGWD/1788096658_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+    },
+    {
+      "condition": "all_attention",
+      "seed": 123,
+      "n": 664,
+      "strict_top1_correct": 277,
+      "strict_top1_percent": 41.71686746987952,
+      "strict_top10_correct": 581,
+      "strict_top10_percent": 87.5,
+      "predictions": "predictions/vgwd_clean_rslora_r32_allattn_seed123_valid_beam10/2026-08-30-19_26_05_vgwd_clean_rslora_r32_allattn_seed123/VGWD/1788097840_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+    },
+    {
+      "condition": "all_attention",
+      "seed": 2026,
+      "n": 664,
+      "strict_top1_correct": 250,
+      "strict_top1_percent": 37.65060240963855,
+      "strict_top10_correct": 582,
+      "strict_top10_percent": 87.65060240963855,
+      "predictions": "predictions/vgwd_clean_rslora_r32_allattn_seed2026_valid_beam10/2026-08-30-21_18_54_vgwd_clean_rslora_r32_allattn_seed2026/VGWD/1788099065_valid_full_beam10_clean_rslora_r32_valid/predictions.jsonl"
+    }
+  ],
+  "aggregate_effects": [
+    {
+      "metric": "top1",
+      "number_of_seeds": 3,
+      "mean_gain_pp": 6.87751004016064,
+      "sd_gain_pp": 2.4205950705303616,
+      "min_gain_pp": 5.120481927710841,
+      "max_gain_pp": 9.638554216867469,
+      "positive_seed_count": 3,
+      "seed_t_95ci_low_pp": 0.8644185403530811,
+      "seed_t_95ci_high_pp": 12.890601539968198
+    },
+    {
+      "metric": "top10",
+      "number_of_seeds": 3,
+      "mean_gain_pp": 5.421686746987949,
+      "sd_gain_pp": 1.086009420320482,
+      "min_gain_pp": 4.5180722891566205,
+      "max_gain_pp": 6.626506024096386,
+      "positive_seed_count": 3,
+      "seed_t_95ci_low_pp": 2.7238897905522665,
+      "seed_t_95ci_high_pp": 8.119483703423631
+    }
+  ]
+}

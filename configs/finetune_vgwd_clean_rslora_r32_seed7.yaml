@@ -1,0 +1,83 @@
+data_args:
+  show_raw_preds: true
+  buffer_size: 100000
+  data_seed: 7
+  shuffle_train: true
+  dataset_for_choosing_best_model: VGWD
+  datasets:
+    VGWD:
+      train_path: data/vgwd_clean/train.jsonl
+      valid_path: data/vgwd_clean/valid.jsonl
+      weight: 1.0
+      limit_train_split: null
+      limit_val_split: null
+      limit_example_split: 10
+      source_token: <nist>
+
+preprocess_args:
+  log_base: 1.28
+  log_shift: 29
+
+lora_args:
+  r: 32
+  lora_alpha: 64
+  lora_dropout: 0.05
+  target_modules:
+    - q_proj
+    - v_proj
+  bias: none
+  use_rslora: true
+  use_dora: false
+
+model_args:
+  tokenizer_path: tokenizer/tokenizer_mf10M.model
+  decoder_seq_len: 200
+  max_mz: 500
+  separate_encoder_decoder_embeds: true
+  encoder_layers: 12
+  encoder_ffn_dim: 4096
+  encoder_attention_heads: 16
+  decoder_layers: 12
+  decoder_ffn_dim: 4096
+  decoder_attention_heads: 16
+
+example_generation_args:
+  top_k: null
+  top_p: null
+  do_sample: false
+  num_beams: 1
+  temperature: null
+  penalty_alpha: null
+  num_return_sequences: 1
+  length_penalty: 1.0
+
+hf_training_args:
+  do_train: true
+  do_eval: true
+  max_steps: 4000
+  optim: adamw_torch
+  warmup_steps: 200
+  learning_rate: 0.0001
+  auto_bs: false
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 2
+  gradient_accumulation_steps: 4
+  eval_accumulation_steps: 1
+  dataloader_num_workers: 2
+  dataloader_drop_last: false
+  report_to: none
+  remove_unused_columns: false
+  logging_steps: 20
+  fp16: true
+  seed: 7
+  predict_with_generate: true
+  generation_num_beams: 1
+  generation_max_length: 200
+  evaluation_strategy: steps
+  eval_steps: 500
+  save_strategy: steps
+  save_steps: 500
+  save_total_limit: 3
+  load_best_model_at_end: true
+  metric_for_best_model: eval_morgan_tanimoto_simil
+  greater_is_better: true

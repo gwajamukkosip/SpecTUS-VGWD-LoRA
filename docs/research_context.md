@@ -817,6 +817,13 @@ r16 screen의 사전 진행 규칙 통과 후, rsLoRA r32/alpha64에서 q/v만 �
 - 이 백업은 현재 연구 상태 보존용이며 external validation 또는 잠금 holdout 평가를 추가하지 않았다. holdout은 계속 `LOCKED_NOT_EVALUATED`이다.
 - 경로: `migration/README_KO.md`, `migration/trainSpectus_environment_2026-09-05.yml`, `migration/build_research_bundle.py`, `dist/spectus_research_migration_2026-09-05.zip`, `dist/MIGRATION_SHA256SUMS`.
 
+### 2026-09-05 — grouped-CV 및 decision-support 공개 GitHub 백업
+
+- 사용자의 명시적 승인 후 `https://github.com/gwajamukkosip/SpecTUS-VGWD-LoRA.git`의 `main` branch에 grouped-CV 코드·설정·집계 결과·논문용 PNG/PDF·연구 문서·환경 복원 도구를 push했다.
+- 최초 공개 커밋은 `5b857a3bc9cfe942c5b8a005a6026be50fa328ac`이며 원격 `refs/heads/main`이 해당 커밋을 가리키는 것을 `git ls-remote`로 확인했다.
+- 공개 제외: row-level `analysis/main_model_grouped_cv/decision_support/sample_scores.csv`, 전체 Codex 대화 기록, 잠금 holdout 및 assignments, 원시 OOF predictions, 학습 checkpoints, private migration ZIP. 이 파일들은 로컬과 checksum 검증된 비공개 마이그레이션 ZIP에만 유지한다.
+- 공개 집계에는 개별 SMILES·원본 spectrum·잠금 holdout row가 포함되지 않는다. 이번 업로드는 보존·재현 목적이며 새 평가나 모델 선택을 수행하지 않았다.
+
 ## 4. Validation에서 결정한 사항
 
 현재까지 validation 근거로 정한 주요 사항은 다음과 같다.

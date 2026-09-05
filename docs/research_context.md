@@ -687,6 +687,136 @@ r16 screen의 사전 진행 규칙 통과 후, rsLoRA r32/alpha64에서 q/v만 �
 
 개별 validation 분자의 SMILES와 예측이 포함된 row-level CSV는 로컬 연구 감사용으로만 보존하고 GitHub 커밋에서는 제외한다. 공개 커밋에는 재현 스크립트와 집계 통계만 포함한다.
 
+### 2026-09-02 — r32 all-attention 논문용 그림 세트
+
+- 기존 validation 집계 결과만 사용해 논문용 그림 5종을 만들었다. 새 모델 학습, hyperparameter 선택 또는 test 열람은 수행하지 않았다.
+- 모든 그림은 q/v를 blue, q/k/v/out을 vermillion으로 통일한 색각 이상 친화 팔레트와 영문 라벨을 사용했다.
+- 각 그림은 600-dpi PNG, 벡터 PDF, 편집 가능한 SVG로 저장했다. PNG의 실제 해상도와 600-dpi metadata, PDF 1 page, SVG vector text를 확인했다.
+- Figure 1은 seeds 7/123/2026의 strict Top-1과 Top-10 절대 성능을 0에서 시작하는 축으로 표시한다.
+- Figure 2는 seed별 paired 이득과 canonical-structure cluster-bootstrap 95% CI, 그리고 3-seed 평균과 seed-t 95% CI를 구분해 표시한다. n=3 seed interval은 탐색적이라는 제한을 캡션에 명시했다.
+- Figure 3은 n≥20인 분자량, 최대 관측 m/z, peak 수 하위그룹의 3-seed 평균과 개별 seed 점을 표시한다. n<20 그룹 제외와 기술 통계라는 점을 캡션에 명시했다.
+- Figure 4는 1,992개 paired seed-sample outcomes에서 retained correct 433, newly correct 355, lost correct 218, remained wrong 986 및 순이득 +137을 흐름으로 표시한다. 188/664 공통 난제는 sample 단위라는 점을 분리해 표기했다.
+- Figure 5는 데이터 감사, 초기 PEFT screen, rank × scaling, r16/r32 all-attention screen, 후보 동결, 중단 방법, FFN 보류와 향후 confirmatory stage를 하나의 결정 흐름으로 정리한다. exact molecule/connectivity/spectrum overlap은 0이지만 scaffold overlap은 남았음을 함께 표시했다.
+- `README.md`에 바로 사용할 수 있는 영문 캡션, 추천 파일 형식과 재생성 명령을 기록했다. `figure_manifest.json`에는 입력 집계표와 산출물의 SHA-256을 기록했다.
+- 그림·캡션·manifest·재생성 코드·집계표 25개를 `r32_all_attention_paper_figures_2026-09-02.zip`으로 묶었고 무결성 검사에 통과했다. ZIP SHA-256은 `1385c2043538918981c1a5b74aeffcefb1e1c04b57db55097a96b4ce46c7d67e`이다. row-level SMILES와 prediction은 포함하지 않았다.
+
+관련 경로:
+
+- `analysis/plot_r32_all_attention_paper_figures.py`
+- `analysis/paper_figures/r32_all_attention/README.md`
+- `analysis/paper_figures/r32_all_attention/figure_manifest.json`
+- `analysis/paper_figures/r32_all_attention/figure1_seedwise_qv_vs_all_attention.{png,pdf,svg}`
+- `analysis/paper_figures/r32_all_attention/figure2_seedwise_gain_with_confidence_intervals.{png,pdf,svg}`
+- `analysis/paper_figures/r32_all_attention/figure3_subgroup_top1_performance.{png,pdf,svg}`
+- `analysis/paper_figures/r32_all_attention/figure4_top1_outcome_flow.{png,pdf,svg}`
+- `analysis/paper_figures/r32_all_attention/figure5_experiment_decision_flow.{png,pdf,svg}`
+- `analysis/paper_figures/r32_all_attention_paper_figures_2026-09-02.zip`
+
+### 2026-09-02 — 동결 r32 all-attention 실행 환경 패키징
+
+- 새 학습이나 모델 선택 없이, 2026-09-01에 validation으로 선택·동결한 seed 123 checkpoint 3500 adapter를 다른 Linux 컴퓨터에서 실행할 수 있도록 배포 패키지를 만들었다. test 또는 validation 성능을 새로 계산하거나 선택에 사용하지 않았다.
+- 재현 환경은 Python 3.8.16, PyTorch 2.0.0, CUDA runtime 11.8, Transformers 4.31.0, PEFT 0.9.0 등 실제 검증 환경의 핵심 버전으로 고정했다. `conda env create --dry-run` 의존성 해석이 성공했다.
+- 기본 SpecTUS 모델은 공식 Hugging Face `MS-ML/SpecTUS_pretrained_only`의 commit `1218bd94411fcc9f35d67e58a30e9fec36fbf0b0`으로 고정했다. 추론에 필요한 세 파일만 내려받으며 `pytorch_model.bin` SHA-256 `4f8d487a51ab787dd2353253c16a71170c1843c612684ec884a0c9a5c20c13c4`를 포함한 파일별 해시를 확인한다.
+- `spectus/predict_lora.py`에 base checkpoint, 입력 JSONL, tokenizer, device의 선택적 CLI override를 추가했다. 기존 인수를 그대로 사용할 때의 동작은 유지했다.
+- 정답 SMILES가 없는 실제 추론 입력을 허용하도록 inference mode의 구조 label 검사를 분리했다. 별도 입력 검증기는 빈 입력, JSON 오류, 중복 sample ID, mz/intensity 길이 불일치, 300개 초과 peak, m/z 범위 초과, 정렬 오류, 부적합 intensity를 추론 전에 차단한다.
+- 합성 형식 예제 1건으로 RTX 3070 Laptop GPU 8GB에서 base model 로딩, adapter 결합, Beam 10 후보 10개 생성, `predictions.jsonl` 저장까지 end-to-end smoke test가 성공했다. 이 예제에는 VGWD row 또는 정답 구조가 포함되지 않으며 smoke test 결과는 성능 근거가 아니다.
+- 인터넷 설치용 ZIP은 35,031,890 bytes, 56 files이며 SHA-256은 `18e2ee2afd3f8518d33aae18a139762e7e75361b2b196fc7ba0793af399552c1`이다. adapter와 실행 코드는 포함하고 1.42GB 기본 모델은 설치 중 내려받는다.
+- 기본 모델까지 포함한 오프라인 모델 ZIP은 1,350,436,390 bytes, 59 files이며 SHA-256은 `624a059f4746e639685f0b51599380cde2143405244205219b2d31855225ee53`이다. 두 ZIP 모두 CRC 검사를 통과했다. Conda 패키지까지 완전 오프라인으로 설치하려면 기관 내부 미러 또는 별도 캐시가 필요하다.
+- 패키징 완료는 소프트웨어 재실행 가능성을 높인 것이며 외부 성능 검증, 현장 검증, 화생방 운용 적합성 또는 배포 승인을 의미하지 않는다. 다른 OS·GPU·CUDA 커널에서 bitwise 동일성도 보장하지 않는다.
+
+관련 경로:
+
+- `deployment/r32_all_attention/README_KO.md`
+- `deployment/r32_all_attention/environment.yml`
+- `deployment/r32_all_attention/setup.sh`
+- `deployment/r32_all_attention/run_inference.sh`
+- `deployment/r32_all_attention/download_base_model.py`
+- `deployment/r32_all_attention/verify_package.py`
+- `deployment/r32_all_attention/validate_input.py`
+- `deployment/r32_all_attention/build_release_bundle.py`
+- `deployment/r32_all_attention/inference_beam10.yaml`
+- `deployment/r32_all_attention/example_input.jsonl`
+- `deployment/r32_all_attention/SHA256SUMS`
+- `dist/spectus_r32_all_attention_online_2026-09-02.zip`
+- `dist/spectus_r32_all_attention_offline_2026-09-02.zip`
+- `dist/SHA256SUMS`
+
+### 2026-09-04 — 잠금 내부 재분할 및 주 모델 grouped 5-fold CV 시작
+
+- 연구 질문: validation에서 선택한 rsLoRA r32/alpha64 q/k/v/out all-attention이 q/v 기준 모델보다, SpecTUS 주 모델 자체를 fold마다 다시 학습하는 structure-grouped OOF 평가에서도 나은지 확인한다.
+- 사전에 고정한 조건: canonical connectivity SMILES를 그룹 단위로 사용하고 seed 20260904로 20% row-target holdout을 한 번 생성했다. CV는 k=5, 첫 전체 비교 training/data seed는 123, 두 방법 모두 checkpoint 3500 고정, Beam 10, strict canonical-isomeric Top-1을 primary endpoint로 정했다. outer OOF 성능으로 checkpoint를 선택하거나 early stopping하지 않는다.
+- 데이터 pool: 기존 `data/vgwd_clean/{train,valid,test}.jsonl` 6,543 rows를 합쳤다. 기존 전처리 한계와 같은 기준으로 6,536 rows가 적격이었고 7 rows가 제외됐다. 적격 canonical connectivity groups는 4,927개였다.
+- 잠금 holdout: 1,308 rows, 997 connectivity groups, 전체 적격 rows의 20.0122%이다. 개발 데이터는 5,228 rows, 3,930 groups이다.
+- grouped 5-fold: OOF row 수는 fold 0~4 순서로 1,046, 1,046, 1,046, 1,045, 1,045이다. 각 구조 그룹의 모든 spectrum을 동일 partition과 동일 OOF fold에 배치했으며, 개발-holdout 및 OOF fold 간 connectivity group overlap은 0이다.
+- 잠금·해시 검증: `LOCK.json`과 `SHA256SUMS` 검사를 통과했고 상태는 `LOCKED_NOT_EVALUATED`이다. runner에는 holdout 평가 명령이 없으며 경로에 `holdout`이 들어간 prediction 요청을 거부한다.
+- smoke test: q/v 4,718,592 trainable LoRA parameters와 all-attention 9,437,184 parameters가 의도한 projection에 연결됨을 확인했다. 두 방법 모두 RTX 3070 Laptop GPU에서 2-step 학습 checkpoint 생성과 fold 0 OOF의 첫 2 rows Beam-10 예측까지 통과했다. 이 2-row 출력은 성능 결과로 사용하지 않는다.
+- fold 0 완료 상태: q/v와 all-attention 모두 3,500/3,500 steps, epoch 1.0으로 완료됐고 동일한 1,046-row OOF에 Beam-10 prediction 1,046 rows씩 생성했다. q/v prediction wall time은 13분 34초, all-attention prediction wall time은 15분 19초였다. 두 조건 모두 Top-10 내 invalid prediction은 0개였다.
+- fold 0 partial OOF 성능: q/v strict Top-1/3/5/10은 각각 32.4092%, 58.9866%, 71.7973%, 80.3059%이고, all-attention은 36.3289%, 65.0096%, 77.8203%, 85.2772%였다. all-attention의 차이는 각각 +3.9197, +6.0229, +6.0229, +4.9713 percentage points였다.
+- fold 0 paired Top-1 전이와 통계: q/v wrong→all-attention right 164 rows, q/v right→all-attention wrong 123 rows였다. exact McNemar p=0.0180651이고, canonical-connectivity cluster bootstrap 5,000회의 Top-1 차이 95% CI는 +0.3913~+7.3728 pp였다.
+- 해석 제한: 위 값은 5개 중 한 fold의 partial OOF 결과다. fold 0에서 all-attention 방향의 양수 차이를 보였지만, 나머지 fold가 없으므로 grouped 5-fold의 최종 효과나 일반화 우월성으로 결론 내리지 않는다.
+- test/holdout 사용 여부: 새 잠금 holdout prediction은 생성하지 않았다. 기존 source test가 재분할 pool에 포함됐지만, 세 source split 모두 이전 실험에서 역할이 있었으므로 이 holdout은 완전히 never-observed인 외부 검증이 아니다. 이후 논문에서는 `prospectively locked internal re-split`로 제한을 명시해야 한다.
+- 향후 분석: 5 folds가 모두 끝난 뒤 pooled OOF strict Top-1/3/5/10, paired exact McNemar, canonical-connectivity cluster bootstrap 5,000회, calibration·abstention·risk-coverage를 계산한다. partial fold 결과는 최종 결론으로 사용하지 않는다.
+- 재개 안전성: fold 1부터는 500 steps마다 최신 operational checkpoint 하나를 보존하되 최종 평가 endpoint는 3,500 steps로 고정한다. 이 저장 주기는 OOF 성능에 따른 checkpoint 선택이 아니며 중단 시 같은 학습 상태를 재개하기 위한 것이다.
+- 후속 실행 상태: 2026-09-04 21:36 KST에 완료된 fold 0 산출물을 재사용하고 fold 1~4를 순차 실행하는 `full` runner를 시작했다. 시작 시 잠금 해시 검증은 다시 통과했고 fold 0의 두 checkpoint와 두 OOF prediction은 재학습 없이 재사용됐다. 이 실행이 완료되기 전까지 fold 0 partial 값만 존재한다.
+- 코드·프로토콜: `analysis/main_model_grouped_cv/prepare_locked_split.py`, `analysis/main_model_grouped_cv/generate_configs.py`, `analysis/main_model_grouped_cv/summarize_oof.py`, `analysis/main_model_grouped_cv/protocol.md`.
+- 잠금 데이터·manifest: `data/vgwd_main_grouped_cv_locked/`.
+- 설정·실행기: `configs/main_grouped_cv/`, `config_runners/run_vgwd_main_grouped_cv.sh`.
+- smoke 산출물: `checkpoints/vgwd_main_grouped_cv_smoke_fold0_{qv,allattn}_seed123/`, `predictions/vgwd_main_grouped_cv_smoke/fold0/`.
+- full-fold 산출물 경로: `checkpoints/vgwd_main_grouped_cv_fold0_{qv,allattn}_seed123/`, `predictions/vgwd_main_grouped_cv/fold0/`.
+
+### 2026-09-05 — 주 모델 grouped 5-fold CV 진행 갱신
+
+- fold 1 완료 상태: q/v와 all-attention 모두 3,500 steps 학습과 동일한 1,046-row OOF Beam-10 예측을 완료했다. 양쪽 prediction은 각각 1,046 rows이며 Top-10 내 invalid prediction은 0개다.
+- fold 1 partial OOF 성능: q/v strict Top-1/3/5/10은 30.4015%, 57.3614%, 68.7380%, 81.6444%이고, all-attention은 35.8509%, 62.5239%, 73.8050%, 84.3212%이다. all-attention 차이는 각각 +5.4493, +5.1625, +5.0669, +2.6769 percentage points다.
+- fold 0~1 단순 pooled 중간값: 2,092 rows에서 q/v Top-1은 657/2,092=31.4054%, all-attention은 755/2,092=36.0899%로 차이는 +4.6845 pp다. 이는 2/5 fold의 중간값이며 사전 정의한 최종 grouped OOF 통계가 아니다.
+- fold 2 진행 상태(2026-09-05 00:26 KST): q/v 3,500-step 학습과 1,046-row OOF Beam-10 예측은 완료됐다. q/v strict Top-1/3/5/10은 32.1224%, 59.9426%, 70.2677%, 80.2103%이며 Top-10 내 invalid prediction은 0개다. all-attention은 1,960/3,500 steps까지 진행 중이므로 paired fold 2 결과는 아직 없다.
+- 실행 무결성: fold 0~1과 fold 2 q/v의 checkpoint 및 prediction은 존재하며, runner는 fold 2 all-attention 이후 fold 3~4를 순차 실행한다. 잠금 holdout은 계속 `LOCKED_NOT_EVALUATED` 상태이며 prediction을 생성하지 않았다.
+- 해석 제한: 현재 all-attention의 Top-1 차이는 완료된 fold 0과 fold 1에서 모두 양수지만, 5개 fold 전체 완료·connectivity-cluster bootstrap·paired 검정 전에는 최종 우월성으로 결론 내리지 않는다.
+- 추가 산출물 경로: `checkpoints/vgwd_main_grouped_cv_fold1_{qv,allattn}_seed123/`, `checkpoints/vgwd_main_grouped_cv_fold2_{qv,allattn}_seed123/`, `predictions/vgwd_main_grouped_cv/fold1/`, `predictions/vgwd_main_grouped_cv/fold2/qv/`.
+
+### 2026-09-05 — 주 모델 grouped 5-fold CV 전체 완료
+
+- 완료 상태: fold 0~4에서 q/v와 all-attention을 각각 고정된 3,500 steps로 다시 학습하고, 각 fold의 group-disjoint OOF를 Beam-10으로 예측했다. 총 10개 학습 checkpoint와 10개 prediction이 모두 존재한다. OOF row 수는 조건별 5,228개이며 fold별 1,046, 1,046, 1,046, 1,045, 1,045개와 정확히 일치한다.
+- pooled strict Top-k: q/v Top-1/3/5/10은 32.1155%, 59.1431%, 70.5241%, 80.6809%이고, all-attention은 38.1790%, 65.1301%, 76.4728%, 85.3481%이다. all-attention 차이는 각각 +6.0635, +5.9870, +5.9487, +4.6672 percentage points다.
+- primary Top-1 정답 수: q/v 1,679/5,228, all-attention 1,996/5,228이다.
+- fold별 Top-1 이득: fold 0~4 순서로 +3.9197, +5.4493, +8.1262, +5.6459, +7.1770 pp이며 5/5 folds에서 양수다.
+- paired Top-1 전이와 통계: q/v wrong→all-attention right 851 rows, q/v right→all-attention wrong 534 rows다. paired exact McNemar p=1.4878575×10^-17이며, canonical-connectivity cluster bootstrap 5,000회의 pooled Top-1 차이 95% CI는 +4.5870~+7.5149 pp다.
+- prediction 유효성: 모든 fold·조건에서 Top-10 내 invalid prediction은 0개다.
+- 잠금·누수 상태: `prepare_locked_split.py --verify`가 다시 PASS했고 holdout 1,308 rows는 `LOCKED_NOT_EVALUATED` 상태다. holdout prediction은 생성하지 않았다.
+- 해석: validation에서 선택한 r32/alpha64 all-attention은 seed 123의 이 prospectively locked internal re-split에서 q/v보다 structure-grouped OOF Top-1 및 Top-k가 높았다. 따라서 기존 한 validation split만의 현상이 아니라 개발 pool의 5개 group-disjoint OOF fold 전반에서 같은 방향이 관찰됐다고 주장할 수 있다.
+- 제한: 이는 외부 데이터 또는 잠금 holdout 최종 평가가 아니고, 5 folds는 5개의 독립 training seed가 아니다. source pool에는 과거 실험에서 사용한 기존 train/validation/test가 포함돼 있으며 training/data seed는 123 하나다. 따라서 외부 일반화, 화생방 현장 성능, 모든 seed에서의 보편적 우월성 또는 최종 배포 준비 완료로 과장하지 않는다.
+- 총 실행 시간: fold 1~4 연속 runner는 2026-09-04 21:36 KST에 시작해 마지막 fold 4 all-attention OOF 평가가 2026-09-05 03:36 KST에 완료되어 약 6시간이 걸렸다. fold 0은 그 전에 별도로 완료됐다.
+- 결과: `analysis/main_model_grouped_cv/results/summary.json`, `analysis/main_model_grouped_cv/results/report.md`, `analysis/main_model_grouped_cv/results/run_metrics.csv`, `analysis/main_model_grouped_cv/results/paired_fold_results.csv`.
+- 전체 산출물: `checkpoints/vgwd_main_grouped_cv_fold{0,1,2,3,4}_{qv,allattn}_seed123/`, `predictions/vgwd_main_grouped_cv/fold{0,1,2,3,4}/{qv,allattn}/`.
+
+### 2026-09-05 — OOF calibration·기권·risk–coverage·Top-k 정량 활용성 분석
+
+- 연구 질문: grouped 5-fold OOF prediction의 저장된 sequence score로 strict Top-1 정답 확률을 보정할 수 있는지, 신뢰도가 낮을 때 기권하면 선택 정확도가 어떻게 변하는지, Top-k 후보가 추가로 회수하는 정답과 검토 부담은 얼마인지 평가했다.
+- 사전 고정 범위: q/v와 all-attention의 OOF만 사용하고 잠금 holdout은 열지 않았다. all-attention을 primary operational candidate, q/v를 secondary comparator로 두었다. 결과 확인 전 primary 기권 기준을 cross-fitted calibrated P(Top-1 correct)≥0.80으로 고정했고, 0.50/0.60/0.70/0.90은 secondary threshold로 정했다.
+- calibration feature: log top-1 sequence score, log top-1/top-2 score ratio, Beam 후보 score-share의 normalized entropy, valid candidate count를 고정했다. sequence score는 native class probability가 아니라 empirical ranking score로 취급했다.
+- calibration 설계: 각 OOF fold를 한 번씩 완전히 제외하고 나머지 4 folds에서 standard scaling+L2 logistic regression(C=1)을 적합하는 5-fold cross-fitting을 사용했다. 따라서 각 row와 같은 connectivity group은 그 row의 calibrator 적합에 쓰이지 않았다. cross-fitted 평가 후 같은 고정법을 전체 OOF에 적합한 계수를 향후 holdout 적용용 JSON으로 동결했다.
+- 데이터 품질 amendment: all-attention 5,228 rows 중 1 row에서 valid candidate가 0개였다. 이는 오답으로 전체 분모에 유지하되 confidence=0으로 강제 기권하고 calibrator 적합에서는 제외했다. 이 규칙은 holdout 접근 전에 기록했으며 모델·threshold·나머지 feature는 변경하지 않았다.
+- all-attention calibration 결과: raw Beam score share의 Brier/ECE-10은 0.275246/0.252551이었고, cross-fitted calibration은 0.203792/0.017805였다. log loss도 0.811533에서 0.594453으로 낮아졌다. q/v의 raw→calibrated Brier는 0.247979→0.191991, ECE는 0.223341→0.011197이었다.
+- primary 기권 결과(all-attention, threshold 0.80): 5,228 rows 중 44 rows에 답하고 5,184 rows는 기권했다. coverage 0.8416%, selective accuracy 90.9091%(40/44), risk 9.0909%였다. canonical-connectivity cluster bootstrap 5,000회(seed 20260905)의 95% CI는 coverage 0.5593~1.1597%, selective accuracy 80.9524~98.4615%였다.
+- primary 기권 해석: 고정 0.80 기준은 정확도가 높지만 99.1584%를 기권하므로 일반 운용 기준으로는 coverage가 지나치게 작다. 결과를 본 뒤 primary threshold를 바꾸지 않았으며, 매우 제한적인 고신뢰 표시로만 해석한다.
+- secondary all-attention threshold: 0.50은 coverage 26.3772%/accuracy 62.9442%, 0.60은 15.1875%/70.2771%, 0.70은 6.2357%/76.9939%, 0.90은 accepted row 0개였다. 이 값은 선택 가능한 운용 trade-off를 보여주는 보조 분석이지 새 primary 기준이 아니다.
+- risk–coverage: confidence 상위 약 5%, 10%, 20%, 50%, 100% coverage에서 all-attention selective accuracy는 각각 79.0076%, 73.8050%, 67.5908%, 52.3718%, 38.1790%였다. coverage가 커질수록 risk가 증가하는 예상 방향을 보였다.
+- Top-k 정량 활용성(all-attention): Top-1/3/5/10 strict accuracy는 38.1790/65.1301/76.4728/85.3481%, hits는 1,996/3,405/3,998/4,462건, MRR@10은 0.539359였다. Top-1 대비 추가 hits는 Top-3 +1,409, Top-5 +2,002, Top-10 +2,466이었다.
+- 후보 검토 부담 proxy: 모든 row에서 고정 K까지 본다고 가정할 때 Top-1 대비 추가 정답 1개당 추가 candidate slots는 Top-3 7.42, Top-5 10.45, Top-10 19.08이었다. 이는 정량적 workload proxy일 뿐 실제 연구자 사용자 연구 또는 현장 유용성 증명이 아니다.
+- 잠금 및 동결: 분석 종료 후 protocol, script, summary, frozen calibrator, calibration/abstention/risk-coverage/Top-k 표에 SHA-256 manifest를 생성했고 전 항목 검증이 통과했다. holdout 상태는 계속 `LOCKED_NOT_EVALUATED`이다.
+- 결론: 내부 grouped OOF에서 score calibration은 raw Beam share보다 Brier/log loss/ECE를 개선했고, confidence 순위는 유용한 risk–coverage 분리를 제공했다. 그러나 primary 0.80 정책은 coverage가 1% 미만이며, holdout·외부 데이터에서 calibration과 threshold가 재현되는지는 아직 확인하지 않았다.
+- 코드·프로토콜: `analysis/main_model_grouped_cv/analyze_decision_support.py`, `analysis/main_model_grouped_cv/decision_support_protocol.md`.
+- 결과·그림·동결 artifact: `analysis/main_model_grouped_cv/decision_support/`의 `report.md`, `summary.json`, `sample_scores.csv`, `calibration_metrics.csv`, `reliability_bins.csv`, `abstention_thresholds.csv`, `risk_coverage.csv`, `topk_quantitative_utility.csv`, `frozen_calibrators.json`, `calibration_reliability.{png,pdf}`, `risk_coverage.{png,pdf}`, `topk_quantitative_utility.{png,pdf}`, `SHA256SUMS`.
+
+### 2026-09-05 — 컴퓨터 교체용 연구 마이그레이션 백업 생성
+
+- grouped-CV와 decision-support 분석 이후 새로 생긴 코드·설정·문서·잠금 split·OOF prediction·10개 최종 checkpoint·동결 모델을 하나의 private 연구 ZIP으로 묶었다. 잠금 데이터와 checkpoint를 포함하므로 공개 GitHub가 아닌 LAN 직접 전송 또는 접근 제한 개인 저장소용이다.
+- `trainSpectus` Conda 환경을 build string 없이 export했고, 새 컴퓨터에서 사용할 복원 지침과 bundle 생성 코드를 함께 포함했다.
+- 연구 ZIP은 846,266,034 bytes, 내부 항목 633개이며 Python ZipFile CRC test가 PASS했다. SHA-256은 `b5a48c6f48c39aeeaad5d549f3eaf622e58c3844e83b00c8e7b3b9d79434d018`이다.
+- 기존 기본 모델 포함 오프라인 ZIP 1,350,436,390 bytes와 온라인 ZIP 35,031,890 bytes를 연구 ZIP과 함께 최상위 `MIGRATION_SHA256SUMS`에 연결했고 세 항목 모두 `sha256sum -c` 검증이 통과했다.
+- 이 백업은 현재 연구 상태 보존용이며 external validation 또는 잠금 holdout 평가를 추가하지 않았다. holdout은 계속 `LOCKED_NOT_EVALUATED`이다.
+- 경로: `migration/README_KO.md`, `migration/trainSpectus_environment_2026-09-05.yml`, `migration/build_research_bundle.py`, `dist/spectus_research_migration_2026-09-05.zip`, `dist/MIGRATION_SHA256SUMS`.
+
 ## 4. Validation에서 결정한 사항
 
 현재까지 validation 근거로 정한 주요 사항은 다음과 같다.
@@ -697,6 +827,7 @@ r16 screen의 사전 진행 규칙 통과 후, rsLoRA r32/alpha64에서 q/v만 �
 4. spectral analog reranker와 learned cross-modal reranker는 structure-grouped OOF에서 robust gain이 없어서 test로 진행하지 않았다.
 5. r16 all-attention validation-only screen은 primary Top-1 평균 +7.4799 pp와 3/3 seed 양수로 사전 진행 규칙을 통과했다. 따라서 다음 단계로 r32/alpha64 all-attention을 validation에서 비교할 수 있다. 이 결정에 test는 사용하지 않았다.
 6. r32 all-attention validation-only screen은 primary Top-1 평균 +6.8775 pp와 3/3 seed 양수로 사전 선택 규칙을 통과했다. 따라서 r32/alpha64 q/k/v/out을 향후 잠금 holdout 또는 외부 평가 후보로 선택했다. 이 결정에도 test는 사용하지 않았다.
+7. 주 모델 grouped 5-fold OOF 완료 후, holdout 접근 전에 confidence feature, cross-fitted logistic calibration, primary 기권 threshold 0.80, Top-k workload proxy 정의를 동결했다. 0.80 결과의 coverage가 낮더라도 사후에 primary 기준을 교체하지 않았다.
 
 초기 LoRA/DoRA/AdaLoRA/rsLoRA r16 adapter screening은 test 결과도 비교에 사용했다. 따라서 이 초기 방법 선택을 순수 validation-only 선택으로 재서술하면 안 된다.
 
@@ -743,6 +874,7 @@ r16 screen의 사전 진행 규칙 통과 후, rsLoRA r32/alpha64에서 q/v만 �
 - deterministic Beam 10 / return 10
 - strict exact Top-k와 Morgan 지표 병행 보고
 - 반복 구조를 고려한 structure-cluster bootstrap
+- OOF cross-fitted confidence calibration 및 고정 primary 기권 threshold 0.80. 단, 현재 coverage 0.8416%의 매우 제한적인 고신뢰 표시이며 holdout 확인 전 배포 안전 기준은 아님
 
 ### 기준선 또는 비교군으로 유지
 
@@ -806,6 +938,14 @@ FFN 포함에는 성능·과적합·공정성에 관한 실험적 결론이 없�
 - `spectus/predict_lora.py`
 - `spectus/evaluate_predictions.py`
 - `analysis/audit_exact_topk.py`
+
+### 동결 모델 실행 환경과 배포 파일
+
+- `models/vgwd_clean_rslora_r32_all_attention_seed123_frozen/`
+- `deployment/r32_all_attention/`
+- `dist/spectus_r32_all_attention_online_2026-09-02.zip`
+- `dist/spectus_r32_all_attention_offline_2026-09-02.zip`
+- `dist/SHA256SUMS`
 
 ### 핵심 설정 및 실행기
 
@@ -883,6 +1023,9 @@ FFN 포함에는 성능·과적합·공정성에 관한 실험적 결론이 없�
 - r16/alpha32 validation-only screen의 seeds 7/123/2026에서 q/k/v/out all-attention은 q/v보다 strict Top-1과 Top-10이 모두 높았고, 사전 설정한 r32 validation 확장 기준을 통과했다.
 - r32/alpha64 validation-only screen의 seeds 7/123/2026에서도 q/k/v/out all-attention은 q/v보다 strict Top-1과 Top-10이 모두 높았고, 평균 이득은 각각 +6.8775 pp와 +5.4217 pp였다. 사전 선택 규칙에 따라 잠금 holdout 또는 외부 평가 후보로 선택됐다.
 - r32 all-attention의 기술적 오류 분석에서 사전 정의한 n≥20 하위그룹 모두 Top-1 평균 이득이 양수였고, Top-10 내 invalid SMILES는 0개였다. 다만 train-unseen scaffold는 5개뿐이어서 scaffold 일반화 근거는 부족하다.
+- prospectively locked internal re-split의 주 모델 structure-grouped 5-fold OOF(seed 123, 조건별 5,228 rows)에서 r32/alpha64 all-attention Top-1은 38.1790%, q/v는 32.1155%였고, fold별 차이가 5/5 양수였다. pooled 차이 +6.0635 pp의 canonical-connectivity cluster bootstrap 95% CI는 +4.5870~+7.5149 pp였다.
+- 같은 grouped OOF에서 fold-cross-fitted logistic calibration은 all-attention raw Beam share 대비 Brier, log loss, ECE-10을 모두 낮췄고 confidence 상위 subset은 전체보다 높은 Top-1 정확도를 보였다. 고정 threshold 0.80은 90.9091% selective accuracy를 보였으나 coverage가 0.8416%뿐이었다.
+- all-attention OOF의 Top-3/5/10은 65.1301/76.4728/85.3481%로 Top-1보다 각각 1,409/2,002/2,466개의 정답을 추가 회수했다. 이는 후보 제공의 정량적 잠재력을 지지하지만 실제 연구자 사용자 연구는 아니다.
 - exact molecule, connectivity, spectrum hash 기준의 직접적인 split 간 중복은 감사에서 발견되지 않았다.
 - 두 reranker는 structure-grouped OOF에서 robust improvement를 보이지 않아 중단했다.
 
@@ -896,6 +1039,8 @@ FFN 포함에는 성능·과적합·공정성에 관한 실험적 결론이 없�
 - r32 all-attention 결과도 3개 training seeds와 모델 선택에 사용한 같은 validation split에 한정된다. 기존 VGWD test, 외부 데이터 또는 현장 데이터의 개선 증거가 아니다.
 - 동결 seed 123은 세 seed 중 validation Top-1이 가장 높은 실행을 선택했으므로 개별 artifact 성능에는 추가적인 validation 선택 낙관성이 있을 수 있다.
 - rank × scaling의 low/high scale은 alpha 정수 제약 때문에 완벽히 동일한 scale pair가 아니다.
+- 주 모델 grouped 5-fold OOF는 training/data seed 123 한 번의 내부 재분할 결과이며 5 folds를 5개의 독립 training seed 반복으로 해석하면 안 된다. 새 잠금 holdout과 외부 데이터 평가는 아직 수행하지 않았다.
+- calibration·기권·risk–coverage 수치도 동일한 내부 OOF에 한정된다. 특히 threshold 0.80의 accepted sample은 44건뿐이므로 90.9091%를 일반 운용 정확도나 안전 보장으로 표현하면 안 된다.
 
 ### 과도하게 주장하면 안 되는 내용
 

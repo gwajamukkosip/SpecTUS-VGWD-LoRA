@@ -29,17 +29,18 @@ Across seeds 7, 123, and 2026, all-attention improved over the matched q/v model
 
 ## Inference
 
-From the repository root:
+The packaged entry point validates the input and keeps the frozen Beam 10 settings:
 
 ```bash
-conda run --no-capture-output -n trainSpectus \
-  python spectus/predict_lora.py \
-  --checkpoint models/vgwd_clean_rslora_r32_all_attention_seed123_frozen \
-  --output-folder predictions/frozen_r32_all_attention_seed123 \
-  --config-file configs/predict_vgwd_clean_rslora_r32_valid_beam10.yaml
+bash deployment/r32_all_attention/run_inference.sh \
+  /absolute/path/input.jsonl \
+  predictions/frozen_r32_all_attention_seed123
 ```
 
-The supplied prediction config points to the project validation data. Replace only the input data path/name for a new research dataset; keep generation settings fixed for confirmatory use.
+Installation, pinned dependencies, base-model retrieval, input schema, integrity checks,
+and online/offline release bundle creation are documented in
+`deployment/r32_all_attention/README_KO.md`. Keep generation settings fixed for
+confirmatory use.
 
 ## Integrity verification
 

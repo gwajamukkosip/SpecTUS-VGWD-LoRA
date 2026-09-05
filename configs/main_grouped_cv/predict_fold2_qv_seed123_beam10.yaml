@@ -1,0 +1,33 @@
+general:
+  device: cuda
+  additional_naming_info: main_grouped_cv_fold2_qv_seed123_beam10
+dataset:
+  data_path: data/vgwd_main_grouped_cv_locked/fold_2/oof.jsonl
+  dataset_name: VGWD_GROUPED_CV
+  data_split: oof_fold2
+dataloader:
+  batch_size: 1
+  num_workers: 1
+tokenizer_path: tokenizer/tokenizer_mf10M.model
+generation_args:
+  top_k: null
+  top_p: null
+  do_sample: false
+  num_beams: 10
+  temperature: null
+  penalty_alpha: null
+  num_return_sequences: 10
+  max_length: 200
+  decoder_input_token: <nist>
+  length_penalty: 1.0
+preprocess_args:
+  source_token: <nist>
+  restrict_intensities: false
+  inference_mode: true
+  max_num_peaks: 300
+  max_mol_repr_len: 100
+  max_mz: 500
+  mol_repr: smiles
+  log_base: 1.28
+  log_shift: 29
+  max_cumsum: null

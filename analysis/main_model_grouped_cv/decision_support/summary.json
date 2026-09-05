@@ -1,0 +1,171 @@
+{
+  "scope": "grouped_5fold_oof_only",
+  "holdout_state": "LOCKED_NOT_EVALUATED",
+  "primary_condition": "allattn",
+  "primary_threshold": 0.8,
+  "primary_policy": {
+    "threshold": 0.8,
+    "n": 5228,
+    "accepted": 44,
+    "abstained": 5184,
+    "coverage": 0.008416220351951033,
+    "selective_accuracy": 0.9090909090909091,
+    "selective_risk": 0.09090909090909094,
+    "correct_accepted": 40,
+    "cluster_bootstrap": {
+      "draws": 5000,
+      "seed": 20260905,
+      "coverage_95ci": [
+        0.005592949108092131,
+        0.011597013304008265
+      ],
+      "selective_accuracy_95ci": [
+        0.8095238095238095,
+        0.9846153846153847
+      ],
+      "draws_without_accepted_rows": 0
+    }
+  },
+  "calibration_metrics": [
+    {
+      "condition": "qv",
+      "method": "uncalibrated_beam_share",
+      "n": 5228,
+      "prevalence": 0.32115531752104054,
+      "brier": 0.24797915386099584,
+      "log_loss": 0.7243310771363284,
+      "ece_10_equal_frequency": 0.22334064204307869
+    },
+    {
+      "condition": "qv",
+      "method": "cross_fitted_logistic",
+      "n": 5228,
+      "prevalence": 0.32115531752104054,
+      "brier": 0.1919907899912977,
+      "log_loss": 0.5670593629702223,
+      "ece_10_equal_frequency": 0.011196776216664688
+    },
+    {
+      "condition": "allattn",
+      "method": "uncalibrated_beam_share",
+      "n": 5228,
+      "prevalence": 0.3817903596021423,
+      "brier": 0.2752461553692506,
+      "log_loss": 0.8115334425773096,
+      "ece_10_equal_frequency": 0.2525512542234677
+    },
+    {
+      "condition": "allattn",
+      "method": "cross_fitted_logistic",
+      "n": 5228,
+      "prevalence": 0.3817903596021423,
+      "brier": 0.2037921346570766,
+      "log_loss": 0.5944528569764997,
+      "ece_10_equal_frequency": 0.01780545961499414
+    }
+  ],
+  "topk_quantitative_utility": [
+    {
+      "condition": "qv",
+      "k": 1,
+      "n": 5228,
+      "hits": 1679,
+      "accuracy": 0.32115531752104054,
+      "incremental_hits_vs_top1": 0,
+      "incremental_accuracy_pp_vs_top1": 0.0,
+      "extra_candidate_slots_vs_top1": 0,
+      "extra_slots_per_additional_hit": "",
+      "mrr_at_10": 0.47980410730984563
+    },
+    {
+      "condition": "qv",
+      "k": 3,
+      "n": 5228,
+      "hits": 3092,
+      "accuracy": 0.5914307574598316,
+      "incremental_hits_vs_top1": 1413,
+      "incremental_accuracy_pp_vs_top1": 27.02754399387911,
+      "extra_candidate_slots_vs_top1": 10456,
+      "extra_slots_per_additional_hit": 7.399858457183298,
+      "mrr_at_10": 0.47980410730984563
+    },
+    {
+      "condition": "qv",
+      "k": 5,
+      "n": 5228,
+      "hits": 3687,
+      "accuracy": 0.7052410099464422,
+      "incremental_hits_vs_top1": 2008,
+      "incremental_accuracy_pp_vs_top1": 38.40856924254017,
+      "extra_candidate_slots_vs_top1": 20912,
+      "extra_slots_per_additional_hit": 10.414342629482071,
+      "mrr_at_10": 0.47980410730984563
+    },
+    {
+      "condition": "qv",
+      "k": 10,
+      "n": 5228,
+      "hits": 4218,
+      "accuracy": 0.8068094873756695,
+      "incremental_hits_vs_top1": 2539,
+      "incremental_accuracy_pp_vs_top1": 48.565416985462896,
+      "extra_candidate_slots_vs_top1": 47052,
+      "extra_slots_per_additional_hit": 18.531705395825128,
+      "mrr_at_10": 0.47980410730984563
+    },
+    {
+      "condition": "allattn",
+      "k": 1,
+      "n": 5228,
+      "hits": 1996,
+      "accuracy": 0.3817903596021423,
+      "incremental_hits_vs_top1": 0,
+      "incremental_accuracy_pp_vs_top1": 0.0,
+      "extra_candidate_slots_vs_top1": 0,
+      "extra_slots_per_additional_hit": "",
+      "mrr_at_10": 0.5393585819943892
+    },
+    {
+      "condition": "allattn",
+      "k": 3,
+      "n": 5228,
+      "hits": 3405,
+      "accuracy": 0.651300688599847,
+      "incremental_hits_vs_top1": 1409,
+      "incremental_accuracy_pp_vs_top1": 26.951032899770468,
+      "extra_candidate_slots_vs_top1": 10456,
+      "extra_slots_per_additional_hit": 7.420865862313698,
+      "mrr_at_10": 0.5393585819943892
+    },
+    {
+      "condition": "allattn",
+      "k": 5,
+      "n": 5228,
+      "hits": 3998,
+      "accuracy": 0.7647283856159143,
+      "incremental_hits_vs_top1": 2002,
+      "incremental_accuracy_pp_vs_top1": 38.293802601377195,
+      "extra_candidate_slots_vs_top1": 20912,
+      "extra_slots_per_additional_hit": 10.445554445554446,
+      "mrr_at_10": 0.5393585819943892
+    },
+    {
+      "condition": "allattn",
+      "k": 10,
+      "n": 5228,
+      "hits": 4462,
+      "accuracy": 0.8534812547819434,
+      "incremental_hits_vs_top1": 2466,
+      "incremental_accuracy_pp_vs_top1": 47.169089517980105,
+      "extra_candidate_slots_vs_top1": 47052,
+      "extra_slots_per_additional_hit": 19.080291970802918,
+      "mrr_at_10": 0.5393585819943892
+    }
+  ],
+  "method_limitations": [
+    "Internal re-split only; no external or locked-holdout result.",
+    "Five folds are not five independent training seeds.",
+    "Top-k workload metrics are proxies, not a researcher user study.",
+    "Sequence scores are empirically calibrated ranking scores, not native class probabilities."
+  ]
+}
